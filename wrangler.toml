@@ -1,0 +1,11 @@
+# DWG→DXF 変換ページ（dwg.toshiji.com）。静的ファイルだけを配信し、変換はすべて見る人のブラウザの中で行う
+name = "dwg-to-dxf"
+compatibility_date = "2024-11-01"
+workers_dev = false
+
+routes = [
+  { pattern = "dwg.toshiji.com", custom_domain = true }
+]
+
+[assets]
+directory = "./public"

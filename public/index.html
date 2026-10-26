@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DWG→DXF 変換（無料・送信なし）</title>
+    <meta name="description" content="AutoCAD の DWG ファイルを、ブラウザの中だけで DXF に変換します。無料・登録不要。図面はどこにも送られません。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://dwg.toshiji.com/" />
+    <meta property="og:title" content="DWG→DXF 変換（無料・送信なし）" />
+    <meta property="og:description" content="DWG をドラッグするだけで DXF に。変換はあなたのパソコンの中だけで行います。" />
+    <link rel="icon" href="https://toshiji.com/favicon.png" />
+    <style>
+      :root {
+        --bg: #f7f1e3; --surface: #fffaf0; --ink: #0c2140; --ink-soft: #4a5872;
+        --line: #e3d8c2; --accent: #0c2140; --accent-ink: #fcf4e1; --tag: #e9dfca;
+        --ok: #1f7a3a; --ng: #b3261e;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #0c2140; --surface: #13294d; --ink: #fcf4e1; --ink-soft: #b9c1d3;
+          --line: #253c63; --accent: #fcf4e1; --accent-ink: #0c2140; --tag: #203658;
+          --ok: #7fd49a; --ng: #ff9b93;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #0c2140; --surface: #13294d; --ink: #fcf4e1; --ink-soft: #b9c1d3;
+        --line: #253c63; --accent: #fcf4e1; --accent-ink: #0c2140; --tag: #203658;
+        --ok: #7fd49a; --ng: #ff9b93;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.75;
+        font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+      a { color: inherit; }
+      .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+      header { padding: 40px 0 16px; }
+      h1 { font-size: 1.9rem; margin: 0 0 6px; line-height: 1.35; }
+      .lead { margin: 0; color: var(--ink-soft); }
+      .badges { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 0; padding: 0; list-style: none; }
+      .badges li { background: var(--tag); border-radius: 999px; padding: 2px 12px; font-size: 0.85rem; }
+      #drop { margin: 24px 0 16px; border: 2px dashed var(--line); border-radius: 16px; background: var(--surface);
+        padding: 40px 16px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+      #drop.over { border-color: var(--ink); }
+      #drop b { font-size: 1.15rem; display: block; margin-bottom: 6px; }
+      #drop span { color: var(--ink-soft); font-size: 0.92rem; }
+      #state { color: var(--ink-soft); font-size: 0.9rem; min-height: 1.5em; margin: 0 0 8px; }
+      #list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+      #list li { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px;
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+      #list .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+      #list .st { font-size: 0.88rem; color: var(--ink-soft); }
+      #list .st.ok { color: var(--ok); } #list .st.ng { color: var(--ng); }
+      .btn { display: inline-block; text-decoration: none; border: 0; cursor: pointer; font: inherit;
+        background: var(--accent); color: var(--accent-ink); padding: 6px 16px; border-radius: 999px; font-weight: 600; font-size: 0.9rem; }
+      .btn[hidden] { display: none; }
+      #all { margin-bottom: 28px; }
+      section { margin: 28px 0; }
+      h2 { font-size: 1.15rem; margin: 0 0 8px; }
+      ul.plain { margin: 0; padding-left: 1.2em; color: var(--ink-soft); }
+      .card { background: var(--accent); color: var(--accent-ink); border-radius: 16px; padding: 20px 22px; text-decoration: none; display: block; }
+      .card p { margin: 4px 0 0; opacity: .9; }
+      footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 20px 0 40px; color: var(--ink-soft); font-size: 0.82rem; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>DWG→DXF 変換</h1>
+        <p class="lead">AutoCAD の DWG を、ドラッグするだけで DXF にします。</p>
+        <ul class="badges"><li>無料・登録なし</li><li>図面はどこにも送りません</li><li>何枚でもまとめて</li></ul>
+      </header>
+
+      <div id="drop" role="button" tabindex="0">
+        <b>ここに DWG をドラッグ</b>
+        <span>または、クリックしてファイルを選ぶ</span>
+      </div>
+      <input id="pick" type="file" accept=".dwg,.DWG" multiple hidden />
+      <p id="state">変換の準備をしています…（初めての時だけ 10MB ほど読み込みます）</p>
+      <ul id="list"></ul>
+      <button id="all" class="btn" hidden>変換できた DXF を全部保存</button>
+
+      <section>
+        <h2>安心して使えるように</h2>
+        <ul class="plain">
+          <li>変換は、あなたのパソコンのブラウザの中だけで行います。図面がこのサイトや他の会社に送られることはありません</li>
+          <li>変換した DXF は、ダウンロードフォルダに保存されます（AutoCAD 2007 形式の DXF）</li>
+          <li>Chrome・Edge・Safari などで使えます。大きな図面は、少し時間がかかります</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>うまく変換できない時</h2>
+        <ul class="plain">
+          <li>DWG によっては、変換できなかったり、文字や寸法の一部が崩れたりすることがあります。大事な図面は、変換後に中身を確かめてください</li>
+          <li>うまくいかない時は、無料の <a href="https://www.opendesign.com/guestfiles/oda_file_converter" target="_blank" rel="noopener">ODA File Converter</a>（Windows・Mac）を使うと変換できることが多いです。<a href="https://cad-guide.toshiji.com/#dwg" target="_blank" rel="noopener">使い方はこちら</a></li>
+        </ul>
+      </section>
+
+      <a class="card" href="https://toshiji.com/shop/">
+        <b>変換した DXF は「WebCAD」で開けます →</b>
+        <p>製缶の図面に特化した、ブラウザで動く CAD。囲んで 1 回クリックで寸法がまとめて入る。800 円・買い切り。</p>
+      </a>
+
+      <footer>
+        <p>作ったのは JIG WORKS（としじ）／ お問い合わせ：<a href="mailto:info@jigworks.jp">info@jigworks.jp</a></p>
+        <p>このページは GPL-3.0 で公開しています（<a href="https://github.com/toshiji39/dwg-to-dxf" target="_blank" rel="noopener">ソースコード</a>）。変換には <a href="https://www.gnu.org/software/libredwg/" target="_blank" rel="noopener">LibreDWG</a> を WebAssembly にした <a href="https://github.com/mlightcad/libredwg-web" target="_blank" rel="noopener">libredwg-web</a>（GPL-3.0）を使っています。AutoCAD・DWG は Autodesk 社の商標です。このページは Autodesk 社とは関係ありません。</p>
+      </footer>
+    </div>
+
+    <script type="module">
+      const $ = id => document.getElementById(id);
+      // 変換係。壊れた DWG で止まったら作り直す
+      const mk = () => { const w = new Worker('./convert-worker.js', { type: 'module' }); w.onerror = () => { $('state').textContent = 'このブラウザでは変換の準備ができませんでした。Chrome の新しい版でお試しください。'; }; return w; };
+      let worker = mk();
+      const jobs = new Map(); // id → { name, li, dxf }
+      let seq = 0, queue = Promise.resolve();
+
+      let ready = false;
+
+      function convert(buf) {
+        const id = ++seq;
+        const w = worker;
+        return new Promise(res => {
+          const done = d => { w.removeEventListener('message', on); w.removeEventListener('error', bad); res(d); };
+          const on = e => { if (e.data.id === id) done(e.data); };
+          const bad = () => done({ id, ok: false, err: -1 });
+          w.addEventListener('message', on);
+          w.addEventListener('error', bad);
+          w.postMessage({ id, buf }, buf ? [buf] : []);
+        });
+      }
+
+      function save(name, dxf) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([dxf], { type: 'application/dxf' }));
+        a.download = name.replace(/\.dwg$/i, '') + '.dxf';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      }
+
+      function addFiles(files) {
+        for (const f of files) {
+          const li = document.createElement('li');
+          li.innerHTML = '<span class="nm"></span><span class="st">待っています…</span>';
+          li.querySelector('.nm').textContent = f.name;
+          $('list').appendChild(li);
+          const st = li.querySelector('.st');
+          // 1 枚ずつ順番に変換する (大きな図面でもパソコンが重くなりすぎないように)
+          queue = queue.then(async () => {
+            const head = new Uint8Array(await f.slice(0, 6).arrayBuffer());
+            if (String.fromCharCode(...head).slice(0, 2) !== 'AC') { st.textContent = 'DWG ではないようです'; st.className = 'st ng'; return; }
+            st.textContent = '変換中…';
+            const t = performance.now();
+            const r = await convert(await f.arrayBuffer());
+            if (!r.ok) {
+              if (r.err === -1) { worker.terminate(); worker = mk(); }
+              st.textContent = '変換できませんでした（ODA File Converter をお試しください）'; st.className = 'st ng';
+              return;
+            }
+            const sec = ((performance.now() - t) / 1000).toFixed(1);
+            st.textContent = `できました（${sec} 秒）`; st.className = 'st ok';
+            const b = document.createElement('button');
+            b.className = 'btn'; b.textContent = 'DXF を保存';
+            b.onclick = () => save(f.name, r.dxf);
+            li.appendChild(b);
+            jobs.set(f.name + '#' + seq, { name: f.name, dxf: r.dxf });
+            $('all').hidden = jobs.size < 2;
+          });
+        }
+        $('state').textContent = '';
+      }
+
+      $('all').onclick = async () => {
+        for (const j of jobs.values()) { save(j.name, j.dxf); await new Promise(r => setTimeout(r, 400)); }
+      };
+      const drop = $('drop');
+      drop.onclick = () => $('pick').click();
+      drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('pick').click(); } };
+      $('pick').onchange = () => { addFiles([...$('pick').files]); $('pick').value = ''; };
+      drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+      drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+      drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); addFiles([...e.dataTransfer.files]); });
+      // 画面のどこに落としても受け取る (ブラウザがファイルを開いてしまわないように)
+      window.addEventListener('dragover', e => e.preventDefault());
+      window.addEventListener('drop', e => { if (e.target !== drop && !drop.contains(e.target)) { e.preventDefault(); addFiles([...e.dataTransfer.files]); } });
+
+      // 準備: 変換係に wasm を読み込ませておく
+      convert(null).then(() => { ready = true; if ($('state').textContent.startsWith('変換の準備')) $('state').textContent = '準備ができました。DWG をドラッグしてください。'; });
+    </script>
+  </body>
+</html>
