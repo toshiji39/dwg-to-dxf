@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>変換した DXF の受け渡し（埋め込み用）</title>
+  </head>
+  <body>
+    <!-- 変換ページで「WebCAD で開く」を押した図面を、WebCAD に渡す係。
+         図面はこのパソコンのブラウザの中 (IndexedDB) に一時的に置いてあるだけで、どこにも送らない。渡したら消す -->
+    <script type="module">
+      const ALLOW = ['https://cad.toshiji.com', 'http://127.0.0.1:8780', 'http://localhost:8780'];
+      const parentOrigin = (location.ancestorOrigins && location.ancestorOrigins[0]) || (() => { try { return new URL(document.referrer).origin; } catch { return ''; } })();
+      if (!ALLOW.includes(parentOrigin)) throw new Error('not allowed: ' + parentOrigin);
+      const MAX_AGE = 30 * 60 * 1000; // 30 分より古いものは渡さない
+
+      const reply = msg => parent.postMessage({ type: 'dxf-handoff', ...msg }, parentOrigin, msg.dxf ? [msg.dxf.buffer] : []);
+      const req = indexedDB.open('webcad-handoff', 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('f');
+      req.onerror = () => reply({ none: true });
+      req.onsuccess = () => {
+        const db = req.result, tx = db.transaction('f', 'readwrite'), st = tx.objectStore('f');
+        const g = st.get('last');
+        g.onsuccess = () => {
+          const v = g.result;
+          st.delete('last');
+          tx.oncomplete = () => reply(v && Date.now() - v.at < MAX_AGE ? { name: v.name, dxf: v.dxf } : { none: true });
+        };
+        g.onerror = () => reply({ none: true });
+      };
+    </script>
+  </body>
+</html>

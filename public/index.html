@@ -49,6 +49,7 @@
       .btn { display: inline-block; text-decoration: none; border: 0; cursor: pointer; font: inherit;
         background: var(--accent); color: var(--accent-ink); padding: 6px 16px; border-radius: 999px; font-weight: 600; font-size: 0.9rem; }
       .btn[hidden] { display: none; }
+      .btn.ghost { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
       #all { margin-bottom: 28px; }
       section { margin: 28px 0; }
       h2 { font-size: 1.15rem; margin: 0 0 8px; }
@@ -150,6 +151,24 @@
         setTimeout(() => URL.revokeObjectURL(a.href), 4000);
       }
 
+      // 「WebCAD で開く」: 変換した DXF をこのパソコンのブラウザの中 (IndexedDB) に一時的に置き、WebCAD を開く。
+      // WebCAD は目印のクッキーを見て、見えない枠 (handoff.html) からこの DXF を受け取る。図面はどこにも送らない
+      function openInWebCAD(name, dxf) {
+        const tab = window.open('about:blank', '_blank');
+        const req = indexedDB.open('webcad-handoff', 1);
+        req.onupgradeneeded = () => req.result.createObjectStore('f');
+        const go = () => {
+          document.cookie = 'webcad_handoff=1; Domain=toshiji.com; Path=/; Max-Age=1800; Secure; SameSite=Lax';
+          if (tab) tab.location.href = 'https://cad.toshiji.com/'; else location.href = 'https://cad.toshiji.com/';
+        };
+        req.onerror = () => { if (tab) tab.close(); alert('このブラウザでは WebCAD に渡せませんでした。「DXF を保存」してから WebCAD で開いてください。'); };
+        req.onsuccess = () => {
+          const tx = req.result.transaction('f', 'readwrite');
+          tx.objectStore('f').put({ name: name.replace(/\.dwg$/i, ''), dxf, at: Date.now() }, 'last');
+          tx.oncomplete = go;
+        };
+      }
+
       function addFiles(files) {
         for (const f of files) {
           const li = document.createElement('li');
@@ -175,6 +194,10 @@
             b.className = 'btn'; b.textContent = 'DXF を保存';
             b.onclick = () => save(f.name, r.dxf);
             li.appendChild(b);
+            const w = document.createElement('button');
+            w.className = 'btn ghost'; w.textContent = 'WebCAD で開いて編集（7日間無料）';
+            w.onclick = () => openInWebCAD(f.name, r.dxf);
+            li.appendChild(w);
             jobs.set(f.name + '#' + seq, { name: f.name, dxf: r.dxf });
             $('all').hidden = jobs.size < 2;
           });

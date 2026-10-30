@@ -4,5 +4,9 @@
   Content-Security-Policy: frame-ancestors https://cad.toshiji.com http://127.0.0.1:8780 http://localhost:8780
 /embed
   Content-Security-Policy: frame-ancestors https://cad.toshiji.com http://127.0.0.1:8780 http://localhost:8780
+/handoff.html
+  Content-Security-Policy: frame-ancestors https://cad.toshiji.com http://127.0.0.1:8780 http://localhost:8780
+/handoff
+  Content-Security-Policy: frame-ancestors https://cad.toshiji.com http://127.0.0.1:8780 http://localhost:8780
 /
   X-Frame-Options: DENY
