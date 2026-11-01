@@ -5,11 +5,11 @@
     <title>DWG→DXF 変換（埋め込み用）</title>
   </head>
   <body>
-    <!-- WebCAD などのページから、見えない枠で呼ばれる変換係。
+    <!-- JIGCAD などのページから、見えない枠で呼ばれる変換係。
          呼んだページから DWG を受け取り、このパソコンの中で DXF にして返す。図面はどこにも送らない -->
     <script type="module">
       // 受け付ける呼び出し元 (知らないサイトから使われないように)
-      const ALLOW = ['https://cad.toshiji.com', 'http://127.0.0.1:8780', 'http://localhost:8780'];
+      const ALLOW = ['https://jigcad.jp', 'https://cad.toshiji.com', 'http://127.0.0.1:8780', 'http://localhost:8780'];
       const parentOrigin = (location.ancestorOrigins && location.ancestorOrigins[0]) || (() => { try { return new URL(document.referrer).origin; } catch { return ''; } })();
       if (!ALLOW.includes(parentOrigin)) throw new Error('not allowed: ' + parentOrigin);
 

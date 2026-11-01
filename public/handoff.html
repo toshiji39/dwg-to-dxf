@@ -5,10 +5,10 @@
     <title>変換した DXF の受け渡し（埋め込み用）</title>
   </head>
   <body>
-    <!-- 変換ページで「WebCAD で開く」を押した図面を、WebCAD に渡す係。
+    <!-- 変換ページで「JIGCAD で開く」を押した図面を、JIGCAD に渡す係。
          図面はこのパソコンのブラウザの中 (IndexedDB) に一時的に置いてあるだけで、どこにも送らない。渡したら消す -->
     <script type="module">
-      const ALLOW = ['https://cad.toshiji.com', 'http://127.0.0.1:8780', 'http://localhost:8780'];
+      const ALLOW = ['https://jigcad.jp', 'https://cad.toshiji.com', 'http://127.0.0.1:8780', 'http://localhost:8780'];
       const parentOrigin = (location.ancestorOrigins && location.ancestorOrigins[0]) || (() => { try { return new URL(document.referrer).origin; } catch { return ''; } })();
       if (!ALLOW.includes(parentOrigin)) throw new Error('not allowed: ' + parentOrigin);
       const MAX_AGE = 30 * 60 * 1000; // 30 分より古いものは渡さない

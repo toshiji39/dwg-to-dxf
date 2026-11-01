@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /embed
-Sitemap: https://dwg.toshiji.com/sitemap.xml
+Sitemap: https://dwg.jigcad.jp/sitemap.xml

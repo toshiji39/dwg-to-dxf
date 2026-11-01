@@ -7,10 +7,10 @@
     <meta name="theme-color" content="#0b0806" />
     <meta name="description" content="AutoCAD の DWG ファイルを、ブラウザの中だけで DXF に変換します。無料・登録不要。図面はどこにも送られません。" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://dwg.toshiji.com/" />
+    <meta property="og:url" content="https://dwg.jigcad.jp/" />
     <meta property="og:title" content="DWG→DXF 変換（無料・送信なし）" />
     <meta property="og:description" content="DWG をドラッグするだけで DXF に。変換はあなたのパソコンの中だけで行います。" />
-    <link rel="canonical" href="https://dwg.toshiji.com/" />
+    <link rel="canonical" href="https://dwg.jigcad.jp/" />
     <meta property="og:image" content="https://toshiji.com/thumbs/dwg.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="https://toshiji.com/favicon.png" />
@@ -109,8 +109,8 @@
         </ul>
       </section>
 
-      <a class="card" href="https://toshiji.com/shop/">
-        <b>変換した DXF は「WebCAD」で開けます →</b>
+      <a class="card" href="https://jigcad.jp/">
+        <b>変換した DXF は「JIGCAD」で開けます →</b>
         <p>製缶の図面に特化した、ブラウザで動く CAD。囲んで 1 回クリックで寸法がまとめて入る。3,000 円・買い切り。</p>
       </a>
 
@@ -151,17 +151,19 @@
         setTimeout(() => URL.revokeObjectURL(a.href), 4000);
       }
 
-      // 「WebCAD で開く」: 変換した DXF をこのパソコンのブラウザの中 (IndexedDB) に一時的に置き、WebCAD を開く。
-      // WebCAD は目印のクッキーを見て、見えない枠 (handoff.html) からこの DXF を受け取る。図面はどこにも送らない
+      // 「JIGCAD で開く」: 変換した DXF をこのパソコンのブラウザの中 (IndexedDB) に一時的に置き、JIGCAD を開く。
+      // JIGCAD は目印のクッキーを見て、見えない枠 (handoff.html) からこの DXF を受け取る。図面はどこにも送らない
       function openInWebCAD(name, dxf) {
         const tab = window.open('about:blank', '_blank');
         const req = indexedDB.open('webcad-handoff', 1);
         req.onupgradeneeded = () => req.result.createObjectStore('f');
         const go = () => {
-          document.cookie = 'webcad_handoff=1; Domain=toshiji.com; Path=/; Max-Age=1800; Secure; SameSite=Lax';
-          if (tab) tab.location.href = 'https://cad.toshiji.com/'; else location.href = 'https://cad.toshiji.com/';
+          // 受け渡しは同じドメインどうしでないと届かない (前のアドレス dwg.toshiji.com → cad.toshiji.com)
+          const old = location.hostname === 'dwg.toshiji.com', to = old ? 'https://cad.toshiji.com/' : 'https://jigcad.jp/';
+          document.cookie = `webcad_handoff=1; Domain=${old ? 'toshiji.com' : 'jigcad.jp'}; Path=/; Max-Age=1800; Secure; SameSite=Lax`;
+          if (tab) tab.location.href = to; else location.href = to;
         };
-        req.onerror = () => { if (tab) tab.close(); alert('このブラウザでは WebCAD に渡せませんでした。「DXF を保存」してから WebCAD で開いてください。'); };
+        req.onerror = () => { if (tab) tab.close(); alert('このブラウザでは JIGCAD に渡せませんでした。「DXF を保存」してから JIGCAD で開いてください。'); };
         req.onsuccess = () => {
           const tx = req.result.transaction('f', 'readwrite');
           tx.objectStore('f').put({ name: name.replace(/\.dwg$/i, ''), dxf, at: Date.now() }, 'last');
@@ -195,7 +197,7 @@
             b.onclick = () => save(f.name, r.dxf);
             li.appendChild(b);
             const w = document.createElement('button');
-            w.className = 'btn ghost'; w.textContent = 'WebCAD で開いて編集（7日間無料）';
+            w.className = 'btn ghost'; w.textContent = 'JIGCAD で開いて編集（7日間無料）';
             w.onclick = () => openInWebCAD(f.name, r.dxf);
             li.appendChild(w);
             jobs.set(f.name + '#' + seq, { name: f.name, dxf: r.dxf });
