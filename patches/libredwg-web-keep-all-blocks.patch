@@ -1,0 +1,19 @@
+diff --git a/src/out_dxf.c b/src/out_dxf.c
+index cb5dd4c7..d072a1ee 100644
+--- a/src/out_dxf.c
++++ b/src/out_dxf.c
+@@ -4043,7 +4043,13 @@ dxf_blocks_write (Bit_Chain *restrict dat, Dwg_Data *restrict dwg)
+           if (dat->version < R_11 && obj == mspace)
+             ;
+           else
+-            error |= dxf_block_write (dat, obj, mspace, pspace, &i);
++            {
++              /* LibreDWG 11d9a9bd9: dxf_block_write() may advance the index.
++                 Use a copy, otherwise the BLOCK_HEADERs in between are
++                 skipped and their blocks are missing in the DXF. */
++              int j = i;
++              error |= dxf_block_write (dat, obj, mspace, pspace, &j);
++            }
+         }
+     }
+ 

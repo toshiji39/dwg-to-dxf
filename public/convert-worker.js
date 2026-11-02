@@ -1,7 +1,7 @@
 // DWG → DXF の変換係 (Web Worker)
 //  ・変換はこのパソコンの中だけで行う。図面はどこにも送らない
-//  ・変換の中身は LibreDWG (GPL-3.0) を WebAssembly にした @mlightcad/libredwg-web 0.8.2
-import createModule from './vendor/libredwg-web.js';
+//  ・変換の中身は LibreDWG (GPL-3.0) を WebAssembly にした @mlightcad/libredwg-web 0.8.3 に、ブロックが抜けるバグの修正を当てたもの (patches/)
+import createModule from './vendor2/libredwg-web.js';
 
 const ready = createModule();
 const CRITICAL = 128; // LibreDWG のエラー番号: 128 以上は「読めなかった」、それ未満は注意だけ
